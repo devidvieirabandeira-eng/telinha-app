@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src data:; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com">
+  <title>Escolha o que transmitir</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:ital,wght@0,700;1,800&family=Chakra+Petch:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="picker.css">
+</head>
+<body>
+  <header>
+    <p class="eyebrow">// Transmitir</p>
+    <h1>Escolha o que <em>transmitir</em></h1>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-kind="window" aria-selected="true">Janelas</button>
+      <button class="tab" role="tab" data-kind="screen" aria-selected="false">Telas</button>
+      <button id="refresh" class="refresh" type="button" title="Atualizar lista" aria-label="Atualizar lista">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="grid" class="grid" role="listbox" aria-label="Telas e janelas"></main>
+  <p id="empty" class="empty" hidden>Nada para mostrar aqui. Abra o jogo e clique em atualizar.</p>
+
+  <footer>
+    <div class="audio">
+      <span class="audio-title">Som</span>
+      <div class="seg" role="radiogroup" aria-label="Som da transmissão">
+        <label><input type="radio" name="audio" value="app"><span id="audio-app-label">Só o som deste app</span></label>
+        <label><input type="radio" name="audio" value="system"><span>Computador todo</span></label>
+        <label><input type="radio" name="audio" value="none"><span>Sem som</span></label>
+      </div>
+      <select id="audio-app" class="app-select" aria-label="Programa de onde vem o som" hidden></select>
+      <small id="audio-hint" class="audio-hint"></small>
+    </div>
+    <div class="actions">
+      <button id="cancel" class="btn btn-ghost" type="button">Cancelar</button>
+      <button id="share" class="btn btn-primary" type="button" disabled>Transmitir</button>
+    </div>
+  </footer>
+
+  <script src="picker.js"></script>
+</body>
+</html>
