@@ -1,19 +1,19 @@
 {
   "name": "telinha-desktop",
   "productName": "Telinha",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Telinha para Windows: transmite a janela do jogo com o som do computador.",
   "author": "Devid Bandeira",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis"
+    "dist": "electron-builder --win nsis --publish never"
   },
   "devDependencies": {
+    "application-loopback": "1.2.7",
     "electron": "45.2.0",
-    "electron-builder": "26.18.0",
-    "application-loopback": "1.2.7"
+    "electron-builder": "26.18.0"
   },
   "build": {
     "appId": "dev.telinha.desktop",
@@ -23,6 +23,7 @@
       "main.js",
       "preload.js",
       "offline.html",
+      "changelog.js",
       "offline.js",
       "picker/**",
       "build/icon.png"
@@ -62,6 +63,17 @@
         "from": "C:/Windows/System32/vcruntime140_1.dll",
         "to": "loopback/vcruntime140_1.dll"
       }
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "devidvieirabandeira-eng",
+        "repo": "telinha-app",
+        "releaseType": "release"
+      }
     ]
+  },
+  "dependencies": {
+    "electron-updater": "6.8.11"
   }
 }

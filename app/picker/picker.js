@@ -3,11 +3,11 @@
 const $ = (sel) => document.querySelector(sel);
 
 const HINTS = {
-  app: "Só o som desse programa vai junto. O Discord e o resto do PC ficam de fora.",
-  system: "Tudo que toca nas suas caixas de som vai junto, inclusive o Discord.",
-  none: "A transmissão vai sem áudio.",
-  screenApp: "A tela inteira vai sem a borda amarela, com o som só do programa escolhido.",
-  noApp: "Não achei programas com janela aberta para pegar o som. Abra o jogo e clique em atualizar.",
+  app: "Vai só o som deste programa.",
+  system: "Vai tudo que toca no PC.",
+  none: "Vai sem som.",
+  screenApp: "Vai a tela inteira com o som só do programa escolhido.",
+  noApp: "Nenhum programa com janela aberta. Abra o jogo e clique em atualizar.",
 };
 
 let sources = [];

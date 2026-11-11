@@ -1,10 +1,12 @@
 // Telinha para Windows. A janela abre o próprio site: o que muda no site muda aqui.
 // O app só acrescenta o que o navegador não faz: escolher a janela do jogo, levar
-// só o som dele (sem o Discord, por exemplo) e ficar na bandeja enquanto você joga.
+// só o som dele, ficar na bandeja enquanto você joga e se atualizar sozinho.
 
 const { app, BrowserWindow, Menu, Tray, desktopCapturer, ipcMain, nativeImage, session, shell } = require("electron");
 const { execFile, spawn } = require("node:child_process");
+const fs = require("node:fs");
 const path = require("node:path");
+const CHANGELOG = require("./changelog");
 
 const SITE = new URL(process.env.TELINHA_URL || "https://telinha.devid-vieirabandeira.workers.dev");
 const ALLOWED_PERMISSIONS = new Set(["media", "display-capture", "fullscreen", "clipboard-sanitized-write", "clipboard-read"]);
@@ -36,6 +38,8 @@ let live = false;
 let picker = null; // { window, finish, pids: Map<id da fonte, pid> }
 let pendingAudio = { mode: "none" }; // escolha de som da última vez que o seletor abriu
 let capture = null; // { proc, wc }
+let updateReady = null; // versão nova já baixada, esperando para instalar
+let whatsNew = []; // [{ version, notes }]: novidades a mostrar depois de atualizar
 
 if (!app.requestSingleInstanceLock()) app.quit();
 app.on("second-instance", showWindow);
@@ -82,7 +86,7 @@ function createWindow() {
   });
   mainWindow.once("ready-to-show", () => mainWindow.show());
 
-  // O X manda para a bandeja (como o Discord); sair de vez é pelo menu do ícone.
+  // O X manda para a bandeja; sair de vez é pelo menu do ícone.
   mainWindow.on("close", (event) => {
     if (quitting) return;
     event.preventDefault();
@@ -91,10 +95,8 @@ function createWindow() {
       trayHintShown = true;
       tray?.displayBalloon({
         iconType: "info",
-        title: "O Telinha continua aberto",
-        content: live
-          ? "Sua transmissão segue rolando. Para fechar de vez: botão direito no ícone > Sair."
-          : "Ele fica aqui perto do relógio. Para fechar de vez: botão direito no ícone > Sair.",
+        title: live ? "Transmissão continua" : "O Telinha continua aberto",
+        content: "Para fechar de vez: botão direito no ícone > Sair.",
       });
     }
   });
@@ -125,12 +127,20 @@ function createWindow() {
 function createTray() {
   tray = new Tray(nativeImage.createFromPath(ICON).resize({ width: 32, height: 32 }));
   tray.setToolTip("Telinha");
-  tray.setContextMenu(
+  tray.on("click", showWindow);
+  tray.on("balloon-click", showWindow);
+  updateTrayMenu();
+}
+
+function updateTrayMenu() {
+  tray?.setContextMenu(
     Menu.buildFromTemplate([
       { label: "Abrir o Telinha", click: showWindow },
+      ...(updateReady ? [{ label: `Reiniciar e atualizar para a ${updateReady}`, click: installUpdate }] : []),
       { type: "separator" },
       {
-        label: "Sair",
+        // Com atualização baixada, sair já instala (a próxima abertura vem na versão nova).
+        label: updateReady ? "Sair (e atualizar)" : "Sair",
         click: () => {
           quitting = true;
           app.quit();
@@ -138,7 +148,6 @@ function createTray() {
       },
     ]),
   );
-  tray.on("click", showWindow);
 }
 
 ipcMain.on("app:live", (event, value) => {
@@ -347,12 +356,115 @@ ipcMain.on("picker:cancel", (event) => {
   if (fromPicker(event)) picker.finish(null);
 });
 
+// ---------------------------------------------------------------- atualizações
+
+// Procura versão nova no GitHub (repo público telinha-app) ao abrir e a cada 4 horas,
+// baixa em segundo plano e avisa o site. Instala ao clicar em Atualizar ou ao sair.
+const UPDATE_CHECK_MS = 4 * 60 * 60 * 1000;
+const stateFile = () => path.join(app.getPath("userData"), "telinha-app.json");
+let autoUpdater = null;
+
+function readState() {
+  try {
+    return JSON.parse(fs.readFileSync(stateFile(), "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveVersion() {
+  try {
+    fs.writeFileSync(stateFile(), JSON.stringify({ ...readState(), version: app.getVersion() }));
+  } catch (err) {
+    console.warn("Não deu para salvar a versão:", err.message);
+  }
+}
+
+const versionParts = (v) => String(v).split(".").map((n) => Number.parseInt(n, 10) || 0);
+function compareVersions(a, b) {
+  const [x, y] = [versionParts(a), versionParts(b)];
+  for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) - (y[i] ?? 0);
+  return 0;
+}
+
+// Abriu numa versão mais nova que a da última vez: separa o que mudou desde então.
+function prepareWhatsNew() {
+  const current = app.getVersion();
+  // A 1.1.0 não guardava a versão: se já existe perfil de antes, veio dela.
+  const previous = readState().version ?? (fs.existsSync(path.join(app.getPath("userData"), "Local Storage")) ? "1.1.0" : null);
+  if (previous && compareVersions(previous, current) < 0) {
+    whatsNew = Object.keys(CHANGELOG)
+      .filter((v) => compareVersions(v, previous) > 0 && compareVersions(v, current) <= 0)
+      .sort((a, b) => compareVersions(b, a))
+      .map((version) => ({ version, notes: CHANGELOG[version] }));
+  }
+  // Sem novidades para mostrar, já marca como vista; com novidades, espera o site confirmar.
+  if (!whatsNew.length) saveVersion();
+}
+
+function setUpdateReady(version) {
+  updateReady = version;
+  updateTrayMenu();
+  if (mainWindow && !mainWindow.webContents.isDestroyed()) mainWindow.webContents.send("update:ready", version);
+  if (!mainWindow?.isVisible()) {
+    tray?.displayBalloon({
+      iconType: "info",
+      title: `Telinha ${version} pronto`,
+      content: "Clique em Atualizar no app, ou saia pelo ícone da bandeja e abra de novo.",
+    });
+  }
+}
+
+function installUpdate() {
+  if (!updateReady || !autoUpdater) return;
+  quitting = true;
+  stopCapture();
+  // Silencioso e abre de novo sozinho quando terminar.
+  autoUpdater.quitAndInstall(true, true);
+}
+
+function setupUpdates() {
+  // Teste local: TELINHA_FAKE_UPDATE=1.2.1 finge uma versão nova já baixada.
+  if (!app.isPackaged) {
+    if (process.env.TELINHA_FAKE_UPDATE) setTimeout(() => setUpdateReady(process.env.TELINHA_FAKE_UPDATE), 4000);
+    return;
+  }
+  ({ autoUpdater } = require("electron-updater"));
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.on("update-downloaded", (info) => setUpdateReady(info.version));
+  autoUpdater.on("error", (err) => console.warn("Atualização falhou:", err?.message ?? err));
+  // Não começa um download no meio de uma live; tenta de novo na próxima rodada.
+  const check = () => {
+    if (!live && !updateReady) autoUpdater.checkForUpdates().catch(() => {});
+  };
+  setTimeout(check, 15_000);
+  setInterval(check, UPDATE_CHECK_MS);
+}
+
+ipcMain.handle("update:state", (event) => {
+  if (!isSite(event.senderFrame?.url)) return null;
+  return { version: app.getVersion(), ready: updateReady, whatsNew };
+});
+
+ipcMain.on("update:seen", (event) => {
+  if (!isSite(event.senderFrame?.url) || !whatsNew.length) return;
+  whatsNew = [];
+  saveVersion();
+});
+
+ipcMain.on("update:install", (event) => {
+  if (isSite(event.senderFrame?.url)) installUpdate();
+});
+
 // ---------------------------------------------------------------- ciclo de vida
 
 app.whenReady().then(() => {
+  prepareWhatsNew();
   setupSession();
   createTray();
   createWindow();
+  setupUpdates();
 });
 
 app.on("before-quit", () => {

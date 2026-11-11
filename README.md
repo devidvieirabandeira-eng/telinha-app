@@ -2,7 +2,7 @@
 
 # Telinha para Windows
 
-Transmita o seu jogo para os amigos, **com o som só do jogo** (sem o Discord vazando na live) e sem a borda amarela do Windows. Quem assiste não precisa instalar nada: entra pelo navegador, no mesmo link.
+Transmita o seu jogo para os amigos, **com o som só do jogo** e sem a borda amarela do Windows. Quem assiste não precisa instalar nada: entra pelo navegador, no mesmo link.
 
 ### ⬇️ [Baixar o Telinha para Windows](https://github.com/devidvieirabandeira-eng/telinha-app/releases/latest/download/Telinha-Setup.exe)
 
@@ -39,7 +39,8 @@ Tudo o que o app faz está na pasta [`app/`](app/). São poucos arquivos e dá p
 - **abre o site do Telinha** (`telinha.devid-vieirabandeira.workers.dev`) numa janela, e mais nada. Qualquer outro link abre no seu navegador normal;
 - **mostra um seletor de tela** quando você clica em "Compartilhar tela", para você escolher o jogo;
 - **captura o som** do programa que você escolher (ou do computador todo, se preferir);
-- **fica na bandeja** (perto do relógio) quando você clica no X, para a live não cair.
+- **fica na bandeja** (perto do relógio) quando você clica no X, para a live não cair;
+- **procura versão nova** nos [Releases desta página](https://github.com/devidvieirabandeira-eng/telinha-app/releases) ao abrir e a cada 4 horas, e baixa em segundo plano (nunca no meio de uma live).
 
 ### 2. O que o app **não** faz
 
@@ -61,6 +62,7 @@ O resultado tem que ser igual ao da tabela:
 
 | Versão | SHA-256 do `Telinha-Setup.exe` |
 | --- | --- |
+| 1.2.0 | `4316a1a724d64dffe327fe772bb0096697dc5116497027cbd694858f8cc76f94` |
 | 1.1.0 | `585d9caba71d6e7ce99f17c59eba98c754694e1054e5ffd6287955fc46b2a7ae` |
 
 ### 4. Passe no antivírus antes de instalar
@@ -86,7 +88,13 @@ Para pegar **só o som do jogo**, o app usa dois executáveis pequenos do projet
 
 ## 🔄 Atualizações
 
-O app abre o site do Telinha, então **quase tudo atualiza sozinho**, sem reinstalar. Só quando mudar algo do próprio app (por exemplo, o seletor de tela) vai sair uma versão nova aqui.
+O app abre o site do Telinha, então **quase tudo atualiza sozinho**, sem reinstalar. Quando sai uma versão nova do próprio app (a partir da 1.2.0):
+
+1. Ele baixa a versão nova em segundo plano e mostra um aviso no canto da tela.
+2. Clique em **Atualizar**: ele fecha, instala e abre de novo em poucos segundos. Ou só saia pelo ícone da bandeja (botão direito → **Sair**): a próxima vez que abrir já vem atualizado.
+3. Na primeira vez que a versão nova abre, aparece o que mudou.
+
+Quem está na **1.1.0** precisa baixar a 1.2.0 aqui uma vez; dali para frente é automático.
 
 ## 🧹 Desinstalar
 

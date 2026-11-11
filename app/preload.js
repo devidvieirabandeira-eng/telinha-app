@@ -1,5 +1,5 @@
-// Ponte entre o site e o app: avisa que está no app, liga o som de um programa só
-// e informa à bandeja se você está ao vivo.
+// Ponte entre o site e o app: avisa que está no app, liga o som de um programa só,
+// informa à bandeja se você está ao vivo e mostra atualizações e novidades.
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("telinhaDesktop", {
@@ -15,4 +15,12 @@ contextBridge.exposeInMainWorld("telinhaDesktop", {
     ipcRenderer.removeAllListeners("app-audio:end");
     ipcRenderer.on("app-audio:end", () => callback());
   },
+  // { version, ready: versão baixada ou null, whatsNew: [{ version, notes }] }
+  getUpdate: () => ipcRenderer.invoke("update:state"),
+  onUpdateReady: (callback) => {
+    ipcRenderer.removeAllListeners("update:ready");
+    ipcRenderer.on("update:ready", (_event, version) => callback(String(version)));
+  },
+  installUpdate: () => ipcRenderer.send("update:install"),
+  seenWhatsNew: () => ipcRenderer.send("update:seen"),
 });
