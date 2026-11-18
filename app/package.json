@@ -1,7 +1,7 @@
 {
   "name": "telinha-desktop",
   "productName": "Telinha",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "Telinha para Windows: transmite a janela do jogo com o som do computador.",
   "author": "Devid Bandeira",

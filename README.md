@@ -36,7 +36,7 @@ Não precisa acreditar na nossa palavra. Dá para conferir:
 
 Tudo o que o app faz está na pasta [`app/`](app/). São poucos arquivos e dá para ler em minutos. O principal é o [`app/main.js`](app/main.js). Em resumo, o app:
 
-- **abre o site do Telinha** (`telinha.devid-vieirabandeira.workers.dev`) numa janela, e mais nada. Qualquer outro link abre no seu navegador normal;
+- **abre o site do Telinha** (`telinha.bandeiradev.workers.dev`) numa janela, e mais nada. Qualquer outro link abre no seu navegador normal;
 - **mostra um seletor de tela** quando você clica em "Compartilhar tela", para você escolher o jogo;
 - **captura o som** do programa que você escolher (ou do computador todo, se preferir);
 - **fica na bandeja** (perto do relógio) quando você clica no X, para a live não cair;
@@ -62,6 +62,7 @@ O resultado tem que ser igual ao da tabela:
 
 | Versão | SHA-256 do `Telinha-Setup.exe` |
 | --- | --- |
+| 1.2.1 | `200710e1f5d791609bc1f3125c053f2d68385fcac523ba8e692448b0a76425ee` |
 | 1.2.0 | `4316a1a724d64dffe327fe772bb0096697dc5116497027cbd694858f8cc76f94` |
 | 1.1.0 | `585d9caba71d6e7ce99f17c59eba98c754694e1054e5ffd6287955fc46b2a7ae` |
 

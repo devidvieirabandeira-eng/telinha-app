@@ -8,7 +8,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const CHANGELOG = require("./changelog");
 
-const SITE = new URL(process.env.TELINHA_URL || "https://telinha.devid-vieirabandeira.workers.dev");
+const SITE = new URL(process.env.TELINHA_URL || "https://telinha.bandeiradev.workers.dev");
 const ALLOWED_PERMISSIONS = new Set(["media", "display-capture", "fullscreen", "clipboard-sanitized-write", "clipboard-read"]);
 const ICON = path.join(__dirname, "build", "icon.png");
 
